@@ -81,3 +81,4 @@ Backendga mos GET endpointlar (`/admin/synonyms`, `/admin/part-types`) qo'shilga
 ## Keyingi qadam
 Expo React Native mobil ilova — xaridor/sotuvchi tomoni (katalog, qidiruv, e'lon ko'rish/berish).
 # Avto-zapchasty-Frontend
+# Avto-zapchasty-admin
