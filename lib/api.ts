@@ -62,10 +62,8 @@ export function errMessage(e: unknown): string {
 // ---------- API methodlari ----------
 export const api = {
   // Auth
-  sendOtp: (phone: string) =>
-    http.post<{ ok: boolean; devCode?: string }>('/auth/send-otp', { phone }).then((r) => r.data),
-  verifyOtp: (phone: string, code: string) =>
-    http.post<{ user: User; accessToken: string; refreshToken: string }>('/auth/verify-otp', { phone, code }).then((r) => r.data),
+  login: (phone: string, password: string) =>
+    http.post<{ user: User; accessToken: string; refreshToken: string }>('/auth/login', { phone, password }).then((r) => r.data),
   me: () => http.get<{ user: User }>('/auth/me').then((r) => r.data.user),
 
   // Analitika
