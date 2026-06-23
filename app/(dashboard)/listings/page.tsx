@@ -1,7 +1,7 @@
 'use client';
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Check, X, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Clock, X, ChevronLeft, ChevronRight, Info } from 'lucide-react';
 import { api, errMessage } from '@/lib/api';
 import { Topbar } from '@/components/topbar';
 import { Card } from '@/components/ui/card';
@@ -15,6 +15,21 @@ import { Empty } from '@/components/empty';
 import { useToast } from '@/components/toast';
 import { CONDITION_LABELS, STATUS_LABELS, formatPrice, formatDate } from '@/lib/utils';
 import type { Listing } from '@/lib/types';
+
+function PendingCountdown({ scheduledActivateAt }: { scheduledActivateAt?: string }) {
+  if (!scheduledActivateAt) return null;
+  const msLeft = new Date(scheduledActivateAt).getTime() - Date.now();
+  if (msLeft <= 0) return <span className="text-xs text-green-600 font-medium">Tez orada faollashadi</span>;
+  const secLeft = Math.ceil(msLeft / 1000);
+  const min = Math.floor(secLeft / 60);
+  const sec = secLeft % 60;
+  return (
+    <span className="inline-flex items-center gap-1 text-xs text-amber-600 font-medium">
+      <Clock size={11} />
+      {min > 0 ? `${min} daq ${sec} s` : `${sec} s`} qoldi
+    </span>
+  );
+}
 
 const TABS = [
   { key: 'pending', label: 'Kutilmoqda' },
@@ -37,12 +52,12 @@ export default function ListingsPage() {
   });
 
   const moderate = useMutation({
-    mutationFn: ({ id, action, reason }: { id: string; action: 'approve' | 'reject'; reason?: string }) =>
-      api.moderate(id, action, reason),
-    onSuccess: (_d, v) => {
+    mutationFn: ({ id, reason }: { id: string; reason?: string }) =>
+      api.moderate(id, 'reject', reason),
+    onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['admin-listings'] });
       qc.invalidateQueries({ queryKey: ['analytics'] });
-      toast.show(v.action === 'approve' ? 'Tasdiqlandi' : 'Rad etildi', 'success');
+      toast.show('Rad etildi', 'success');
       setRejectId(null);
       setReason('');
     },
@@ -53,8 +68,17 @@ export default function ListingsPage() {
 
   return (
     <>
-      <Topbar title="E'lonlar moderatsiyasi" />
+      <Topbar title="E'lonlar" />
       <main className="p-6">
+        {/* Auto-activate haqida izoh */}
+        <div className="mb-5 flex items-start gap-2 rounded-lg border border-amber/30 bg-amber/10 px-4 py-3 text-sm text-amber-800">
+          <Info size={16} className="mt-0.5 shrink-0 text-amber-600" />
+          <span>
+            E'lonlar joylangandan <strong>2 daqiqa</strong> so'ng avtomatik faollashadi.
+            Faqat muammolik e'lonlarni <strong>rad eting</strong>.
+          </span>
+        </div>
+
         {/* Filtr tablari */}
         <div className="mb-5 inline-flex rounded-md border border-line bg-panel p-1">
           {TABS.map((t) => (
@@ -106,14 +130,16 @@ export default function ListingsPage() {
                         <div className="font-mono text-[11px] text-muted">{l.sellerId?.phone}</div>
                       </td>
                       <td className="px-5 py-3 whitespace-nowrap text-xs text-muted">{formatDate(l.createdAt)}</td>
-                      <td className="px-5 py-3"><Badge tone={STATUS_TONE[l.status] || 'neutral'}>{STATUS_LABELS[l.status]}</Badge></td>
+                      <td className="px-5 py-3">
+                        <div className="flex flex-col gap-1">
+                          <Badge tone={STATUS_TONE[l.status] || 'neutral'}>{STATUS_LABELS[l.status]}</Badge>
+                          {l.status === 'pending' && (
+                            <PendingCountdown scheduledActivateAt={(l as any).scheduledActivateAt} />
+                          )}
+                        </div>
+                      </td>
                       <td className="px-5 py-3">
                         <div className="flex justify-end gap-1.5">
-                          {l.status !== 'active' && (
-                            <Button variant="success" size="sm" onClick={() => moderate.mutate({ id: l._id, action: 'approve' })} disabled={moderate.isPending}>
-                              <Check size={15} /> Tasdiqlash
-                            </Button>
-                          )}
                           {l.status !== 'rejected' && (
                             <Button variant="danger" size="sm" onClick={() => setRejectId(l._id)}>
                               <X size={15} /> Rad etish
@@ -155,7 +181,7 @@ export default function ListingsPage() {
         <div className="mt-4 flex justify-end gap-2">
           <Button variant="ghost" onClick={() => setRejectId(null)}>Bekor</Button>
           <Button variant="danger" disabled={moderate.isPending}
-            onClick={() => rejectId && moderate.mutate({ id: rejectId, action: 'reject', reason })}>
+            onClick={() => rejectId && moderate.mutate({ id: rejectId, reason })}>
             {moderate.isPending && <Spinner className="h-3.5 w-3.5" />} Rad etish
           </Button>
         </div>
