@@ -204,18 +204,19 @@ function CategoryModal({
 
 // ── Level 2 sub-row ───────────────────────────────────────────────────
 function SubRow({
-  cat, onEdit, onDelete,
+  cat, onEdit, onDelete, onToggle,
 }: {
   cat: PartCategory;
   onEdit: (c: PartCategory) => void;
   onDelete: (c: PartCategory) => void;
+  onToggle: (c: PartCategory) => void;
 }) {
   return (
     <tr className="border-b border-line/40 last:border-0 hover:bg-panel2/40 transition-colors">
       <td className="py-2.5 pl-12 pr-4">
         <div className="flex items-center gap-2 text-sm">
           <span className="text-muted">└</span>
-          <span className="font-medium">{cat.name.ru}</span>
+          <span className={`font-medium ${cat.hidden ? 'opacity-40 line-through' : ''}`}>{cat.name.ru}</span>
           {cat.name.uz && (
             <span className="text-xs text-muted">/ {cat.name.uz}</span>
           )}
@@ -229,9 +230,15 @@ function SubRow({
       </td>
       <td className="px-4 py-2.5 tabular-nums text-sm text-muted">{cat.order}</td>
       <td className="px-4 py-2.5">
-        {cat.hidden
-          ? <EyeOff size={14} className="text-muted" />
-          : <Eye size={14} className="text-green-500" />}
+        <Button
+          variant="ghost" size="icon"
+          title={cat.hidden ? "Ko'rsatish" : "Yashirish"}
+          onClick={() => onToggle(cat)}
+        >
+          {cat.hidden
+            ? <EyeOff size={14} className="text-muted" />
+            : <Eye size={14} className="text-green-500" />}
+        </Button>
       </td>
       <td className="px-4 py-2.5">
         <div className="flex justify-end gap-1">
@@ -253,12 +260,13 @@ function SubRow({
 
 // ── Level 1 row ───────────────────────────────────────────────────────
 function Level1Row({
-  cat, children, onEdit, onDelete,
+  cat, children, onEdit, onDelete, onToggle,
 }: {
   cat: PartCategory;
   children: PartCategory[];
   onEdit: (c: PartCategory) => void;
   onDelete: (c: PartCategory) => void;
+  onToggle: (c: PartCategory) => void;
 }) {
   const [open, setOpen] = useState(true);
 
@@ -276,7 +284,7 @@ function Level1Row({
                 : <ChevronRight size={15} className="text-muted flex-shrink-0" />
               : <span className="w-[15px]" />
             }
-            <span className="font-semibold text-sm">{cat.name.ru}</span>
+            <span className={`font-semibold text-sm ${cat.hidden ? 'opacity-40 line-through' : ''}`}>{cat.name.ru}</span>
             {cat.name.uz && (
               <span className="text-xs text-muted">/ {cat.name.uz}</span>
             )}
@@ -295,9 +303,15 @@ function Level1Row({
         </td>
         <td className="px-4 py-3 tabular-nums text-sm text-muted">{cat.order}</td>
         <td className="px-4 py-3">
-          {cat.hidden
-            ? <EyeOff size={14} className="text-muted" />
-            : <Eye size={14} className="text-green-500" />}
+          <Button
+            variant="ghost" size="icon"
+            title={cat.hidden ? "Ko'rsatish" : "Yashirish"}
+            onClick={() => onToggle(cat)}
+          >
+            {cat.hidden
+              ? <EyeOff size={14} className="text-muted" />
+              : <Eye size={14} className="text-green-500" />}
+          </Button>
         </td>
         <td className="px-4 py-3">
           <div className="flex justify-end gap-1">
@@ -317,7 +331,7 @@ function Level1Row({
 
       {/* Level 2 children */}
       {open && children.map((child) => (
-        <SubRow key={child._id} cat={child} onEdit={onEdit} onDelete={onDelete} />
+        <SubRow key={child._id} cat={child} onEdit={onEdit} onDelete={onDelete} onToggle={onToggle} />
       ))}
     </>
   );
@@ -342,6 +356,12 @@ export default function CategoriesPage() {
       qc.invalidateQueries({ queryKey: ['admin-categories'] });
       toast.show("O'chirildi", 'success');
     },
+    onError: (e) => toast.show(errMessage(e), 'error'),
+  });
+
+  const toggle = useMutation({
+    mutationFn: (cat: PartCategory) => api.update('categories', cat._id, { hidden: !cat.hidden }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['admin-categories'] }),
     onError: (e) => toast.show(errMessage(e), 'error'),
   });
 
@@ -416,6 +436,7 @@ export default function CategoriesPage() {
                       children={childrenOf(cat._id)}
                       onEdit={openEdit}
                       onDelete={(c) => del.mutate(c._id)}
+                      onToggle={(c) => toggle.mutate(c)}
                     />
                   ))}
                 </tbody>
@@ -446,6 +467,7 @@ export default function CategoriesPage() {
                           cat={cat}
                           onEdit={openEdit}
                           onDelete={(c) => del.mutate(c._id)}
+                          onToggle={(c) => toggle.mutate(c)}
                         />
                       ))}
                     </tbody>
