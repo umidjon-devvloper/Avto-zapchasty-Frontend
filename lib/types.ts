@@ -6,6 +6,9 @@ export interface PartCategory {
   slug: string;
   icon: string;
   order: number;
+  level: 1 | 2;
+  parentId: string | { _id: string; name: I18nName; slug: string } | null;
+  hidden?: boolean;
 }
 
 export interface PartType {

@@ -83,6 +83,9 @@ export const api = {
 
   // Katalog — o'qish (ochiq endpointlar)
   categories: () => http.get<{ categories: PartCategory[] }>('/catalog/categories').then((r) => r.data.categories),
+  // Admin uchun BARCHA kategoriyalar (level 1 + 2, populate qilingan parentId)
+  adminCategories: (params?: Record<string, unknown>) =>
+    http.get<{ items: PartCategory[] }>('/admin/categories', { params }).then((r) => r.data.items),
   brands: () => http.get<{ brands: Brand[] }>('/catalog/brands').then((r) => r.data.brands),
   cities: () => http.get<{ cities: City[] }>('/catalog/cities').then((r) => r.data.cities),
 
