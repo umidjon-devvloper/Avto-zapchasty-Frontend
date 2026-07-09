@@ -33,7 +33,7 @@ export default function NotificationsPage() {
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
   const [role, setRole] = useState('all');
-  const [lastResult, setLastResult] = useState<{ sent: number; users: number } | null>(null);
+  const [lastResult, setLastResult] = useState<{ sent: number; registeredUsers: number; guestDevices: number } | null>(null);
 
   const send = useMutation({
     mutationFn: () => api.broadcastNotification({ title: title.trim(), body: body.trim(), role }),
@@ -131,9 +131,11 @@ export default function NotificationsPage() {
               <div className="flex items-center gap-2 rounded-lg bg-green-500/10 border border-green-500/20 px-4 py-3 text-sm text-green-400">
                 <CheckCircle2 size={16} />
                 <span>
-                  Muvaffaqiyatli yuborildi —{' '}
-                  <strong>{lastResult.users}</strong> foydalanuvchiga{' '}
-                  <strong>{lastResult.sent}</strong> qurilmaga
+                  Muvaffaqiyatli yuborildi — jami <strong>{lastResult.sent}</strong> qurilmaga
+                  {' '}(<strong>{lastResult.registeredUsers}</strong> ro'yxatdan o'tgan
+                  {lastResult.guestDevices > 0 && (
+                    <> , <strong>{lastResult.guestDevices}</strong> mehmon</>
+                  )})
                 </span>
               </div>
             )}

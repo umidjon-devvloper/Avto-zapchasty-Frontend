@@ -119,5 +119,7 @@ export const api = {
 
   // Push broadcast
   broadcastNotification: (body: { title: string; body: string; role?: string }) =>
-    http.post<{ sent: number; users: number }>('/admin/notifications/broadcast', body).then((r) => r.data),
+    http
+      .post<{ sent: number; registeredUsers: number; guestDevices: number }>('/admin/notifications/broadcast', body)
+      .then((r) => r.data),
 };
