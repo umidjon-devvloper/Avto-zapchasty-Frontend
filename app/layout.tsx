@@ -5,6 +5,7 @@ import { QueryProvider } from '@/lib/query-provider';
 import { ToastProvider } from '@/components/toast';
 import { ThemeProvider } from '@/lib/theme';
 
+
 export const metadata: Metadata = {
   title: 'AvtoEhtiyot — Admin',
   description: 'Avtoehtiyot marketplace boshqaruv paneli',
