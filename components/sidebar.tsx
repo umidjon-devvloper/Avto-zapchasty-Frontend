@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
   LayoutDashboard, ClipboardList, Users, Tag, Layers, MapPin, Wrench,
-  Boxes, Repeat, Car, Flag, Bell,
+  Boxes, Repeat, Car, Flag, Bell, FileSpreadsheet,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -14,6 +14,7 @@ const NAV = [
     { href: '/users', label: 'Foydalanuvchilar', icon: Users },
     { href: '/reports', label: 'Shikoyatlar', icon: Flag },
     { href: '/notifications', label: 'Bildirishnomalar', icon: Bell },
+    { href: '/import', label: 'Excel import', icon: FileSpreadsheet },
   ]},
   { section: 'Katalog', items: [
     { href: '/catalog/categories', label: 'Kategoriyalar', icon: Layers },

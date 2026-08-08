@@ -3,6 +3,7 @@ import { auth } from './auth';
 import type {
   Analytics, Brand, CarModel, City, Engine, Generation, Listing,
   Paginated, PartCategory, PartTypeAdmin, AdminReport, Synonym, User,
+  ImportAnalysis, ImportBatch, ImportColumns, ImportDefaults, ImportItem, ImportReference,
 } from './types';
 
 const baseURL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
@@ -122,4 +123,51 @@ export const api = {
     http
       .post<{ sent: number; registeredUsers: number; guestDevices: number }>('/admin/notifications/broadcast', body)
       .then((r) => r.data),
+
+  // ---------- Excel import ----------
+  // Faylni tahlil qilish (bazaga yozilmaydi)
+  importAnalyze: (
+    file: File,
+    opts?: { sheet?: string; dataStart?: number; columns?: Partial<ImportColumns>; currency?: string }
+  ) => {
+    const form = new FormData();
+    form.append('file', file);
+    if (opts?.sheet) form.append('sheet', opts.sheet);
+    if (opts?.dataStart !== undefined) form.append('dataStart', String(opts.dataStart));
+    if (opts?.columns) form.append('columns', JSON.stringify(opts.columns));
+    if (opts?.currency) form.append('currency', opts.currency);
+    return http
+      .post<ImportAnalysis>('/admin/import/analyze', form, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      })
+      .then((r) => r.data);
+  },
+
+  // Tasdiqlangan qatorlarni bazaga yozish
+  importCommit: (body: {
+    sellerId: string;
+    fileName?: string;
+    sheet?: string;
+    columns?: Partial<ImportColumns>;
+    defaults: ImportDefaults;
+    items: ImportItem[];
+    note?: string;
+  }) =>
+    http
+      .post<{ batchId: string; created: number; skipped: { row: number; reason: string }[]; skippedTotal: number }>(
+        '/admin/import/commit',
+        body
+      )
+      .then((r) => r.data),
+
+  // Qatorni qo'lda tuzatish uchun to'liq ro'yxatlar
+  importReference: () => http.get<ImportReference>('/admin/import/reference').then((r) => r.data),
+
+  // Partiyalar tarixi
+  importBatches: (params: Record<string, unknown>) =>
+    http.get<Paginated<ImportBatch>>('/admin/import/batches', { params }).then((r) => r.data),
+
+  // Partiyani butunlay qaytarib olish
+  importRollback: (id: string) =>
+    http.delete<{ ok: boolean; deleted: number }>(`/admin/import/batches/${id}`).then((r) => r.data),
 };

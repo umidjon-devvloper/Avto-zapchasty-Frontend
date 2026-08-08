@@ -140,3 +140,97 @@ export interface AdminReport {
   reporterId: { _id: string; name: string; phone: string } | null;
   listingId: { _id: string; title: string; status: string; sellerId: string } | null;
 }
+
+// ---------- Excel import ----------
+
+/** Analiz natijasidagi bitta qator */
+export interface ImportItem {
+  row: number;              // Excel'dagi qator raqami
+  rawName: string;          // katakdagi asl matn
+  modelCell: string;        // model alohida ustunda bo'lsa
+  title: string;            // tayyorlangan sarlavha
+  price: number;
+  currency: string;
+  oemNumbers: string[];
+  manufacturer: string;
+  partTypeSlug: string | null;
+  partTypeName: string | null;
+  partTypeNameUz: string | null;
+  partTypeId: string | null;
+  categorySlug: string | null;
+  categoryName: I18nName | null;
+  categoryId: string | null;
+  brandId: string | null;
+  brandName: string;
+  modelId: string | null;
+  modelName: string;
+  compatible: { brandId: string; modelId: string; brandName: string; modelName: string }[];
+  duplicate: boolean;
+  /** no-part-type | no-price | no-model | duplicate */
+  issues: string[];
+  article?: string;
+}
+
+export interface ImportColumns {
+  nameCol: number;
+  priceCol: number | null;
+  modelCol: number | null;
+}
+
+export interface ImportStats {
+  total: number;
+  duplicates: number;
+  noPrice: number;
+  noPartType: number;
+  noModel: number;
+  noOem: number;
+  byCategory: Record<string, number>;
+}
+
+export interface ImportAnalysis {
+  fileName: string;
+  sheet: string;
+  sheets: string[];
+  headerRow: number;
+  dataStart: number;
+  columns: ImportColumns;
+  headers: string[];
+  currency: string;
+  stats: ImportStats;
+  items: ImportItem[];
+}
+
+export interface ImportDefaults {
+  condition: Condition;
+  currency: string;
+  descriptionNote: string;
+  status: 'active' | 'pending' | 'draft';
+  city?: string;
+  delivery?: boolean;
+  phone?: string;
+}
+
+export interface ImportBatch {
+  _id: string;
+  fileName: string;
+  sheet: string;
+  total: number;
+  created: number;
+  skipped: number;
+  status: 'committed' | 'rolled_back';
+  rolledBackAt: string | null;
+  note: string;
+  createdAt: string;
+  liveCount: number;
+  defaults: Partial<ImportDefaults>;
+  sellerId: { _id: string; name: string; phone: string } | null;
+  createdBy: { _id: string; name: string; phone: string } | null;
+}
+
+/** Qatorni qo'lda tuzatish uchun ma'lumotnoma */
+export interface ImportReference {
+  categories: { _id: string; name: I18nName; slug: string; level: 1 | 2 }[];
+  partTypes: { _id: string; name: string; nameUz: string; slug: string; categoryId: string }[];
+  brands: { _id: string; name: string; slug: string }[];
+  models: { _id: string; name: string; slug: string; brandId: string }[];
+}
